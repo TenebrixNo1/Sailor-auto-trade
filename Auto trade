@@ -1,0 +1,198 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Trade Script",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by you",
+    ConfigurationSaving = {
+        Enabled = false
+    }
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+
+-- 📦 เซ็ตของ
+local Sets = {
+    ["Moon Slayer + F"] = { 
+        {name = "Moon Crest", amount = 3},
+        {name = "Crescent Shard", amount = 14},
+        {name = "Lunar Essence", amount = 9},
+        {name = "Demon Remnant", amount = 16},
+        {name = "Upper Seal", amount = 110}
+    },
+
+    ["Ice Queen + F"] = { 
+        {name = "Ice Core", amount = 3},
+        {name = "Frozen Brand", amount = 14},
+        {name = "Glacir Remmnat", amount = 9},
+        {name = "Battle Shard", amount = 17},
+        {name = "Frost Relic", amount = 110}
+    },
+
+    ["Strongest Shinobi + F"] = { 
+        {name = "Path Fragment", amount = 3},
+        {name = "Eternal Core", amount = 8},
+        {name = "Battle Sigil", amount = 18},
+        {name = "Power Remnant", amount = 15}
+    },
+
+    ["Gilgamesh + F"] = { 
+        {name = "Phantasm Core", amount = 3},
+        {name = "Golden Essence", amount = 8},
+        {name = "Ancient Shard", amount = 6},
+        {name = "Throne Remnant", amount = 12},
+        {name = "Broken Sword", amount = 100}
+    },
+
+    ["Blessed Maiden + F"] = { 
+        {name = "Celestial Mark", amount = 3},
+        {name = "Aero Core", amount = 11},
+        {name = "Gale Essence", amount = 8},
+        {name = "Tide Remnant", amount = 14},
+        {name = "Tempest Relic", amount = 100}
+    },
+
+    ["True Aizen + F"] = { 
+        {name = "Evolution Fragment", amount = 1},
+        {name = "Transcendent Core", amount = 3},
+        {name = "Transmutation Shard", amount = 5},
+        {name = "Divinity Essence", amount = 8},
+        {name = "Fusion Ring", amount = 15},
+        {name = "Chrysalis Sigil", amount = 75}
+    },
+
+    ["Sukuna V2 + F"] = { 
+        {name = "Cursed Flesh", amount = 1},
+        {name = "Malevolent Soul", amount = 6},
+        {name = "Vessel Ring", amount = 7},
+        {name = "Awakened Cursed Fingers", amount = 20},
+        {name = "Shrine Domain Shard", amount = 1}
+    },
+
+    ["Gojo V2 + F"] = { 
+        {name = "Infinity Essence", amount = 1},
+        {name = "Blue Singularity", amount = 6},
+        {name = "Reversal Pulse", amount = 9},
+        {name = "Six Eye", amount = 6},
+        {name = "Infinity Domain Shard", amount = 1}
+    },
+
+    ["Cid V2 + F"] = { 
+        {name = "Atomic Omen", amount = 1},
+        {name = "Eminence Essence", amount = 3},
+        {name = "Shadow Remnant", amount = 9},
+        {name = "Magic Shard", amount = 16},
+        {name = "Abyss Sigil", amount = 140}
+    },
+
+    ["Saber Alter + F"] = { 
+        {name = "Corrupt Crown", amount = 3},
+        {name = "Corruption Core", amount = 12},
+        {name = "Alter Essence", amount = 8},
+        {name = "Morgan Remnant", amount = 15},
+        {name = "Dark Grail", amount = 110}
+    },
+
+    ["Anos"] = { 
+        {name = "Imperial Mark", amount = 1},
+        {name = "Destruction Eye", amount = 2},
+        {name = "Demonic Shard", amount = 6},
+        {name = "Demonic Fragment", amount = 12},
+        {name = "Calamity Seal", amount = 65}
+    },
+
+    ["Ascention 1-10"] = {
+        {name = "Void Fragment", amount = 5},
+        {name = "Limitless Ring", amount = 2},
+        {name = "Dismantle Fang", amount = 7},
+        {name = "Dark Ring", amount = 5},
+        {name = "Reiatsu Core", amount = 4},
+        {name = "Blood Ring", amount = 4},
+        {name = "Hōgyoku Fragment", amount = 2},
+        {name = "Atomic Core", amount = 2},
+        {name = "Soul Flame", amount = 3},
+        {name = "Cursed Flesh", amount = 2},
+        {name = "Infinity Essence", amount = 2},
+        {name = "Phantasm Core", amount = 2},
+        {name = "Slime Core", amount = 3},
+        {name = "Azure Heart", amount = 2},
+        {name = "Evolution Fragment", amount = 2},
+        {name = "Path Fragment", amount = 2},
+        {name = "Corrupt Crown", amount = 3}
+    }
+}
+
+-- 🔗 remote
+local remote = game:GetService("ReplicatedStorage")
+    :WaitForChild("Remotes")
+    :WaitForChild("TradeRemotes")
+    :WaitForChild("AddItemToTrade")
+
+-- 📤 ฟังก์ชันส่งของ
+local function sendSet(setName)
+    setName = tostring(setName) -- 🔥 กันพลาด
+
+    print("Trying to send:", setName)
+
+    local items = Sets[setName]
+
+    if not items then
+        warn("Set not found:", setName)
+        return
+    end
+
+    for _, item in ipairs(items) do
+        print("Sending:", item.name, item.amount)
+
+        remote:FireServer("Items", item.name, item.amount)
+        task.wait(0.7)
+    end
+
+    Rayfield:Notify({
+        Title = "Done",
+        Content = "Sent set: " .. setName,
+        Duration = 3
+    })
+end
+
+-- 📌 สร้าง dropdown จาก Sets
+local options = {}
+for name, _ in pairs(Sets) do
+    table.insert(options, name)
+end
+
+local selectedSet = nil
+
+Tab:CreateDropdown({
+    Name = "Select Set",
+    Options = options,
+    CurrentOption = nil,
+    Callback = function(option)
+        -- 🔥 FIX หลักอยู่ตรงนี้
+        if typeof(option) == "table" then
+            selectedSet = option[1]
+        else
+            selectedSet = option
+        end
+
+        selectedSet = tostring(selectedSet)
+
+        print("Selected:", selectedSet)
+    end,
+})
+
+-- 🔘 ปุ่มกด
+Tab:CreateButton({
+    Name = "Send Set",
+    Callback = function()
+        if selectedSet then
+            sendSet(selectedSet)
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Please select a set first",
+                Duration = 3
+            })
+        end
+    end,
+})
