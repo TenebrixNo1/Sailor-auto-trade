@@ -319,7 +319,7 @@ Tab:CreateInput({
 -- 🎁 EXTRA (เพิ่มตรงนี้เท่านั้น)
 --------------------------------------------------
 ExtraDropdown = Tab:CreateDropdown({
-    Name = "Select Item",
+    Name = "Select Item (option)",
     Options = {},
     Callback = function(opt)
         selectedExtraItem = typeof(opt)=="table" and opt[1] or opt
