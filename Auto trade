@@ -3,7 +3,7 @@ pcall(function()
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Trade Script",
+    Name = "Trade Script by Tenebrix",
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by Tenebrix",
     ConfigurationSaving = { Enabled = false }
