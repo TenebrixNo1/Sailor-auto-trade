@@ -27,7 +27,7 @@ local Sets = {
     ["Ice Queen + F"] = { 
         {name = "Ice Core", amount = 3},
         {name = "Frozen Brand", amount = 14},
-        {name = "Glacir Remmnant", amount = 9},
+        {name = "Glacier Remmnant", amount = 9},
         {name = "Battle Shard", amount = 17},
         {name = "Frost Relic", amount = 110}
     },
