@@ -1,17 +1,20 @@
+pcall(function()
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "Trade Script",
     LoadingTitle = "Loading...",
-    LoadingSubtitle = "by you",
-    ConfigurationSaving = {
-        Enabled = false
-    }
+    LoadingSubtitle = "by Tenebrix",
+    ConfigurationSaving = { Enabled = false }
 })
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
--- 📦 เซ็ตของ
+
+--------------------------------------------------
+-- 📦 SETS
+--------------------------------------------------
 local Sets = {
     ["Moon Slayer + F"] = { 
         {name = "Moon Crest", amount = 3},
@@ -65,7 +68,7 @@ local Sets = {
         {name = "Cursed Flesh", amount = 1},
         {name = "Malevolent Soul", amount = 6},
         {name = "Vessel Ring", amount = 7},
-        {name = "Awakened Cursed Fingers", amount = 20},
+        {name = "Awakened Cursed Finger", amount = 20},
         {name = "Shrine Domain Shard", amount = 1}
     },
 
@@ -122,77 +125,279 @@ local Sets = {
     }
 }
 
--- 🔗 remote
-local remote = game:GetService("ReplicatedStorage")
-    :WaitForChild("Remotes")
-    :WaitForChild("TradeRemotes")
-    :WaitForChild("AddItemToTrade")
+--------------------------------------------------
+-- 🔗 REMOTES
+--------------------------------------------------
+local RS = game:GetService("ReplicatedStorage")
+local Remotes = RS:WaitForChild("Remotes")
+local tradeFolder = Remotes:WaitForChild("TradeRemotes")
 
--- 📤 ฟังก์ชันส่งของ
-local function sendSet(setName)
-    setName = tostring(setName) -- 🔥 กันพลาด
+local tradeRemote = tradeFolder:WaitForChild("AddItemToTrade")
+local sendTradeRemote = tradeFolder:WaitForChild("SendTradeRequest")
+local readyRemote = tradeFolder:WaitForChild("SetReady")
+local confirmRemote = tradeFolder:WaitForChild("ConfirmTrade")
 
-    print("Trying to send:", setName)
+local invRemote = Remotes:WaitForChild("UpdateInventory")
+local requestInv = Remotes:WaitForChild("RequestInventory")
 
-    local items = Sets[setName]
-
-    if not items then
-        warn("Set not found:", setName)
-        return
-    end
-
-    for _, item in ipairs(items) do
-        print("Sending:", item.name, item.amount)
-
-        remote:FireServer("Items", item.name, item.amount)
-        task.wait(0.7)
-    end
-
-    Rayfield:Notify({
-        Title = "Done",
-        Content = "Sent set: " .. setName,
-        Duration = 3
-    })
+--------------------------------------------------
+-- 🔤 NORMALIZE
+--------------------------------------------------
+local function normalize(str)
+    return string.lower(string.gsub(tostring(str), "%s+", ""))
 end
 
--- 📌 สร้าง dropdown จาก Sets
+--------------------------------------------------
+-- 📦 INVENTORY
+--------------------------------------------------
+local inventory = {}
+
+local selectedExtraItem = nil
+local extraAmount = 0
+local ExtraDropdown = nil
+
+invRemote.OnClientEvent:Connect(function(category, data)
+    if category == "Items" and typeof(data) == "table" then
+        inventory = data
+
+        local list, seen = {}, {}
+
+        for _, item in pairs(inventory) do
+            local name = item.name or item.Name
+            if name and not seen[name] then
+                seen[name] = true
+                table.insert(list, name)
+            end
+        end
+
+        table.sort(list)
+
+        if ExtraDropdown then
+            pcall(function()
+                ExtraDropdown:Refresh(list)
+            end)
+        end
+    end
+end)
+
+requestInv:FireServer()
+
+--------------------------------------------------
+-- 🔍 GET AMOUNT
+--------------------------------------------------
+local function getAmount(itemName)
+    local target = normalize(itemName)
+
+    for _, item in pairs(inventory) do
+        local name = item.name or item.Name
+        local amount = item.quantity or item.Quantity or item.amount or 0
+
+        if name and normalize(name) == target then
+            return amount
+        end
+    end
+
+    return 0
+end
+
+--------------------------------------------------
+-- 👤 PLAYER SELECT
+--------------------------------------------------
+local Players = game:GetService("Players")
+
+local function getPlayerList()
+    local list = {}
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Players.LocalPlayer then
+            table.insert(list, plr.Name)
+        end
+    end
+    return list
+end
+
+local selectedPlayer = nil
+
+local PlayerDropdown = Tab:CreateDropdown({
+    Name = "Select Player",
+    Options = getPlayerList(),
+    Callback = function(opt)
+        selectedPlayer = typeof(opt)=="table" and opt[1] or opt
+    end,
+})
+
+Tab:CreateButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        PlayerDropdown:Refresh(getPlayerList())
+    end,
+})
+
+Tab:CreateButton({
+    Name = "Send Trade Request",
+    Callback = function()
+        if not selectedPlayer then return end
+        local target = Players:FindFirstChild(selectedPlayer)
+        if target then
+            sendTradeRemote:FireServer(target.UserId)
+        end
+    end,
+})
+
+--------------------------------------------------
+-- 🤖 AUTO CONFIRM
+--------------------------------------------------
+local tradeState = {
+    theirReady = false,
+    phase = "",
+    theirConfirm = false
+}
+
+local tradeUpdate = Remotes:WaitForChild("TradeRemotes"):WaitForChild("TradeUpdated")
+
+tradeUpdate.OnClientEvent:Connect(function(data)
+    if typeof(data) ~= "table" then return end
+    tradeState.theirReady = data.theirReady or tradeState.theirReady
+    tradeState.phase = data.phase or tradeState.phase
+    tradeState.theirConfirm = data.theirConfirm or tradeState.theirConfirm
+end)
+
+local autoConfirmEnabled = true
+
+Tab:CreateToggle({
+    Name = "Auto Ready + Confirm",
+    CurrentValue = true,
+    Callback = function(val)
+        autoConfirmEnabled = val
+    end,
+})
+
+local function autoTradeConfirm()
+    if not autoConfirmEnabled then return end
+
+    readyRemote:FireServer(true)
+
+    repeat task.wait() until tradeState.theirReady == true
+    repeat task.wait() until tradeState.phase == "confirming"
+
+    repeat
+        confirmRemote:FireServer()
+        task.wait(0.5)
+    until tradeState.theirConfirm == true
+end
+
+--------------------------------------------------
+-- 📌 SELECT SET
+--------------------------------------------------
 local options = {}
-for name, _ in pairs(Sets) do
-    table.insert(options, name)
-end
+for name,_ in pairs(Sets) do table.insert(options, name) end
 
 local selectedSet = nil
 
 Tab:CreateDropdown({
     Name = "Select Set",
     Options = options,
-    CurrentOption = nil,
-    Callback = function(option)
-        -- 🔥 FIX หลักอยู่ตรงนี้
-        if typeof(option) == "table" then
-            selectedSet = option[1]
-        else
-            selectedSet = option
-        end
-
-        selectedSet = tostring(selectedSet)
-
-        print("Selected:", selectedSet)
+    Callback = function(opt)
+        selectedSet = typeof(opt)=="table" and opt[1] or opt
     end,
 })
 
--- 🔘 ปุ่มกด
+--------------------------------------------------
+-- 🔢 MULTIPLIER
+--------------------------------------------------
+local setMultiplier = 1
+
+Tab:CreateInput({
+    Name = "Set Amount",
+    PlaceholderText = "Amount",
+    Callback = function(text)
+        local num = tonumber(text)
+        setMultiplier = (num and num >= 1) and math.floor(num) or 1
+    end,
+})
+
+--------------------------------------------------
+-- 🎁 EXTRA (เพิ่มตรงนี้เท่านั้น)
+--------------------------------------------------
+ExtraDropdown = Tab:CreateDropdown({
+    Name = "Select Item",
+    Options = {},
+    Callback = function(opt)
+        selectedExtraItem = typeof(opt)=="table" and opt[1] or opt
+    end,
+})
+
+Tab:CreateInput({
+    Name = "Item Amount",
+    PlaceholderText = "Amount",
+    Callback = function(text)
+        local num = tonumber(text)
+        extraAmount = num or 0
+    end,
+})
+
+--------------------------------------------------
+-- 📤 SEND SET (แทบไม่แตะ logic เดิม)
+--------------------------------------------------
+local function sendSet(setName)
+    if not inventory or next(inventory) == nil then return end
+	
+	repeat task.wait() until inventory and next(inventory) ~= nil
+    task.wait(1)
+
+    local items = Sets[setName]
+    if not items then return end
+
+    local missing = {}
+
+    for _, item in ipairs(items) do
+        local need = item.amount * setMultiplier
+        if getAmount(item.name) < need then
+            table.insert(missing, item.name)
+        end
+    end
+
+    if selectedExtraItem and extraAmount > 0 then
+        if getAmount(selectedExtraItem) < extraAmount then
+            table.insert(missing, selectedExtraItem)
+        end
+    end
+
+    if #missing > 0 then
+        Rayfield:Notify({
+            Title = "Missing",
+            Content = table.concat(missing, ", "),
+            Duration = 5
+        })
+        return
+    end
+
+    -- ✅ ใช้แบบเดิม 100% (ไม่แตะ)
+    for _, item in ipairs(items) do
+        tradeRemote:FireServer("Items", item.name, item.amount * setMultiplier)
+        task.wait(0.7)
+    end
+
+    -- ✅ เพิ่มแค่ตรงนี้ (ยิง extra ต่อท้าย)
+    if selectedExtraItem and extraAmount > 0 then
+        tradeRemote:FireServer("Items", selectedExtraItem, extraAmount)
+        task.wait(0.7)
+    end
+
+    if autoConfirmEnabled then
+        autoTradeConfirm()
+    end
+end
+
+--------------------------------------------------
+-- 🔘 BUTTON
+--------------------------------------------------
 Tab:CreateButton({
     Name = "Send Set",
     Callback = function()
         if selectedSet then
             sendSet(selectedSet)
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Please select a set first",
-                Duration = 3
-            })
         end
     end,
 })
+
+end)
