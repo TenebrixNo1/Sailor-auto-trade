@@ -104,6 +104,14 @@ local Sets = {
         {name = "Calamity Seal", amount = 65}
     },
 
+	["Great Mage"] = { 
+	    {name = "Mana Core", amount = 1},
+	    {name = "Magic Essence", amount = 5},
+	    {name = "Ancient Fragment", amount = 10},
+	    {name = "Spell Echo", amount = 18},
+	    {name = "Easter Egg", amount = 500}
+	},
+
     ["Ascention 1-10"] = {
         {name = "Void Fragment", amount = 5},
         {name = "Limitless Ring", amount = 2},
