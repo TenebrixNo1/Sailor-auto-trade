@@ -112,6 +112,18 @@ local Sets = {
 	    {name = "Easter Egg", amount = 500}
 	},
 
+	["Luck Relic"] = { 
+	    {name = "Relic Part #5", amount = 30},
+	    {name = "Relic Part #6", amount = 25}
+	},
+
+	["Damage Relic"] = { 
+	    {name = "Relic Part #7", amount = 40},
+	    {name = "Relic Part #8", amount = 30},
+	    {name = "Relic Part #1", amount = 50},
+	    {name = "Relic Part #3", amount = 50}
+	},
+
     ["Ascention 1-10"] = {
         {name = "Void Fragment", amount = 5},
         {name = "Limitless Ring", amount = 2},
