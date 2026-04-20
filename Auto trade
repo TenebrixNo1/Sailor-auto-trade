@@ -131,12 +131,12 @@ local Sets = {
 	    {name = "Relic Part #3", amount = 50}
 	},
 
-	["Crit Damage Relic"] = { 
+	["Crit Chance Relic"] = { 
 	    {name = "Relic Part #1", amount = 20},
 	    {name = "Relic Part #2", amount = 15}
 	},
 
-	["Crit Chance Relic"] = { 
+	["Crit Damage Relic"] = { 
 	    {name = "Relic Part #3", amount = 25},
 	    {name = "Relic Part #4", amount = 20}
 	},
