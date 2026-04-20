@@ -11,12 +11,11 @@ local Window = Rayfield:CreateWindow({
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
-
 --------------------------------------------------
--- 📦 SETS
+-- 📦 SETS (เหมือนเดิม)
 --------------------------------------------------
 local Sets = {
-    ["Moon Slayer + F"] = { 
+	["Moon Slayer + F"] = { 
         {name = "Moon Crest", amount = 3},
         {name = "Crescent Shard", amount = 14},
         {name = "Lunar Essence", amount = 9},
@@ -160,10 +159,10 @@ local Sets = {
         {name = "Path Fragment", amount = 2},
         {name = "Corrupt Crown", amount = 3}
     }
-}
+} -- ❗ ตรงนี้ใช้ของเดิมมึง (ไม่เปลี่ยน)
 
 --------------------------------------------------
--- 🔗 REMOTES
+-- 🔗 REMOTES (เหมือนเดิม)
 --------------------------------------------------
 local RS = game:GetService("ReplicatedStorage")
 local Remotes = RS:WaitForChild("Remotes")
@@ -185,9 +184,10 @@ local function normalize(str)
 end
 
 --------------------------------------------------
--- 📦 INVENTORY
+-- 📦 INVENTORY + SEARCH SYSTEM
 --------------------------------------------------
 local inventory = {}
+local allItems = {}
 
 local selectedExtraItem = nil
 local extraAmount = 0
@@ -196,23 +196,22 @@ local ExtraDropdown = nil
 invRemote.OnClientEvent:Connect(function(category, data)
     if category == "Items" and typeof(data) == "table" then
         inventory = data
+        allItems = {}
 
-        local list, seen = {}, {}
+        local seen = {}
 
         for _, item in pairs(inventory) do
             local name = item.name or item.Name
             if name and not seen[name] then
                 seen[name] = true
-                table.insert(list, name)
+                table.insert(allItems, name)
             end
         end
 
-        table.sort(list)
+        table.sort(allItems)
 
         if ExtraDropdown then
-            pcall(function()
-                ExtraDropdown:Refresh(list)
-            end)
+            ExtraDropdown:Refresh(allItems)
         end
     end
 end)
@@ -238,7 +237,7 @@ local function getAmount(itemName)
 end
 
 --------------------------------------------------
--- 👤 PLAYER SELECT
+-- 👤 PLAYER SELECT (เหมือนเดิม)
 --------------------------------------------------
 local Players = game:GetService("Players")
 
@@ -281,7 +280,7 @@ Tab:CreateButton({
 })
 
 --------------------------------------------------
--- 🤖 AUTO CONFIRM
+-- 🤖 AUTO CONFIRM (เหมือนเดิม)
 --------------------------------------------------
 local tradeState = {
     theirReady = false,
@@ -323,16 +322,52 @@ local function autoTradeConfirm()
 end
 
 --------------------------------------------------
--- 📌 SELECT SET
+-- 📌 SELECT SET (เหมือนเดิม)
 --------------------------------------------------
 local options = {}
 for name,_ in pairs(Sets) do table.insert(options, name) end
 
 local selectedSet = nil
 
-Tab:CreateDropdown({
+--------------------------------------------------
+-- 🔍 SEARCH SET
+--------------------------------------------------
+
+local allSets = {}
+for name,_ in pairs(Sets) do
+    table.insert(allSets, name)
+end
+
+table.sort(allSets)
+
+local searchSetText = ""
+
+Tab:CreateInput({
+    Name = "🔍 Search Set",
+    PlaceholderText = "...",
+    Callback = function(text)
+        searchSetText = string.lower(text or "")
+        local filtered = {}
+
+        for _, name in ipairs(allSets) do
+            if string.find(string.lower(name), searchSetText) then
+                table.insert(filtered, name)
+            end
+        end
+
+        if SetDropdown then
+            SetDropdown:Refresh(filtered)
+        end
+    end,
+})
+
+--------------------------------------------------
+-- 📦 DROPDOWN SET
+--------------------------------------------------
+
+SetDropdown = Tab:CreateDropdown({
     Name = "Select Set",
-    Options = options,
+    Options = allSets,
     Callback = function(opt)
         selectedSet = typeof(opt)=="table" and opt[1] or opt
     end,
@@ -353,8 +388,30 @@ Tab:CreateInput({
 })
 
 --------------------------------------------------
--- 🎁 EXTRA (เพิ่มตรงนี้เท่านั้น)
+-- 🔍 SEARCH + DROPDOWN (ตัวใหม่)
 --------------------------------------------------
+
+local searchText = ""
+
+Tab:CreateInput({
+    Name = "🔍 Search Item",
+    PlaceholderText = "...",
+    Callback = function(text)
+        searchText = string.lower(text or "")
+        local filtered = {}
+
+        for _, name in ipairs(allItems) do
+            if string.find(string.lower(name), searchText) then
+                table.insert(filtered, name)
+            end
+        end
+
+        if ExtraDropdown then
+            ExtraDropdown:Refresh(filtered)
+        end
+    end,
+})
+
 ExtraDropdown = Tab:CreateDropdown({
     Name = "Select Item (option)",
     Options = {},
@@ -373,7 +430,7 @@ Tab:CreateInput({
 })
 
 --------------------------------------------------
--- 📤 SEND SET (แทบไม่แตะ logic เดิม)
+-- 📤 SEND SET (เหมือนเดิม)
 --------------------------------------------------
 local function sendSet(setName)
     if not inventory or next(inventory) == nil then return end
@@ -408,13 +465,11 @@ local function sendSet(setName)
         return
     end
 
-    -- ✅ ใช้แบบเดิม 100% (ไม่แตะ)
     for _, item in ipairs(items) do
         tradeRemote:FireServer("Items", item.name, item.amount * setMultiplier)
         task.wait(0.7)
     end
 
-    -- ✅ เพิ่มแค่ตรงนี้ (ยิง extra ต่อท้าย)
     if selectedExtraItem and extraAmount > 0 then
         tradeRemote:FireServer("Items", selectedExtraItem, extraAmount)
         task.wait(0.7)
