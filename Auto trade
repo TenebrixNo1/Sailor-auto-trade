@@ -118,6 +118,14 @@ local Sets = {
 	    {name = "Monster Pulse", amount = 2}
 	},
 
+	["Enchant Set 1-10"] = { 
+        {name = "Adamantite", amount = 500},
+        {name = "Obsidian", amount = 5000},
+        {name = "Mythril", amount = 5000},
+        {name = "Iron", amount = 15000},
+        {name = "Wood", amount = 25000}
+    },
+
 	["Luck Relic"] = { 
 	    {name = "Relic Part #5", amount = 30},
 	    {name = "Relic Part #6", amount = 25}
