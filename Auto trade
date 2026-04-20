@@ -112,6 +112,13 @@ local Sets = {
 	    {name = "Easter Egg", amount = 500}
 	},
 
+    ["Garou"] = { 
+	    {name = "Cosmic Essence", amount = 12},
+	    {name = "Star Mark", amount = 8},
+	    {name = "Galaxy Shard", amount = 5},
+	    {name = "Monster Pulse", amount = 2}
+	},
+
 	["Luck Relic"] = { 
 	    {name = "Relic Part #5", amount = 30},
 	    {name = "Relic Part #6", amount = 25}
