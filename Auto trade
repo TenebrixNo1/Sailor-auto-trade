@@ -118,6 +118,14 @@ local Sets = {
 	    {name = "Monster Pulse", amount = 2}
 	},
 
+    ["The World / Dio"] = { 
+	    {name = "Vampire Omen", amount = 2},
+	    {name = "World Core", amount = 6},
+	    {name = "Time Remnant", amount = 12},
+	    {name = "Power Fragment", amount = 20},
+        {name = "Dominion Brand", amount = 80},
+	},
+
 	["Enchant Set 1-10"] = { 
         {name = "Adamantite", amount = 500},
         {name = "Obsidian", amount = 5000},
@@ -147,6 +155,17 @@ local Sets = {
 	    {name = "Relic Part #3", amount = 25},
 	    {name = "Relic Part #4", amount = 20}
 	},
+
+    ["Full Set Relic"] = { 
+        {name = "Relic Part #5", amount = 30},
+	    {name = "Relic Part #6", amount = 25},
+        {name = "Relic Part #7", amount = 40},
+	    {name = "Relic Part #8", amount = 30},
+	    {name = "Relic Part #1", amount = 70},
+	    {name = "Relic Part #3", amount = 75},
+	    {name = "Relic Part #2", amount = 15},
+	    {name = "Relic Part #4", amount = 20}
+    },
 
     ["Ascention 1-10"] = {
         {name = "Void Fragment", amount = 5},
